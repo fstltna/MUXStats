@@ -47,7 +47,7 @@ $first_row = 1;
 	do {
 		$line = $t->getline();
 		print $line;
-	}until ($line =~ /\'?$/);
+	}until ($line =~ /.*\-+\'/);
 	$t->print(('WHO'));
 	@output = ();
 	$nrecord = 0;
@@ -61,9 +61,10 @@ $first_row = 1;
 			last;
 		}
 		if($line =~ /^(\S+(\s+\S+)?)\s+(\d{2,2}:\d{2,2})\s+(\d+[smhd]\S*)\s+(.*)/) {
-			push @output, ($1, $3, $4, $5)
+			my @row = ($1, $3, $4, $5);
+			push @output, \@row
 		}else {
-			print("Opps, not match ????????\n");
+			print("Opps, not match ???????? $line\n");
 		}
 	};
 	print("record=$nrecord\n");
@@ -106,12 +107,13 @@ print $fh $message;
 print "Operation done successfully\n";
 #$dbh->disconnect();
 
-foreach $curline (@output)
+for(my $i = 0; $i <@output; $i++)
 {
 	($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 	$year = substr($year, 1);
 	$LAST_SEEN = sprintf("%02d/%02d/20%02d %02d:%02d:%02d", $mon, $mday, $year, $hour, $min, $sec);
-	print $fh "<tr><td width=250>$curline</td><td>$ONFOR</td><td>$IDLE</td><td>$STATUS</td></tr>";
+#	print $fh "<tr><td width=250>$curline[0]</td><td>$ONFOR</td><td>$IDLE</td><td>$STATUS</td></tr>";
+	print $fh "<tr><td width=250>$output[$i][0]</td><td>$output[$i][1]</td><td>$output[$i][2]</td><td>$output[$i][3]</td></tr>";
 }
 
 print $fh "</table>
