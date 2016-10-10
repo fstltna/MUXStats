@@ -14,14 +14,15 @@ $SERVERPORT="3067";
 # Load our dependancies
 #use strict;
 use File::Copy qw(copy);
-use Net::Telnet();
+#use Net::Telnet();
+use DBI;
 
 my ($t, @output);
 
 # Code below here
 if (-e $OUTDIR and -d $OUTDIR)
 {
-	print("$OUTDIR exists\n");
+	#print("$OUTDIR exists\n");
 }
 else
 {
@@ -32,44 +33,18 @@ else
 # Copy in logo
 copy $LOGO, $OUTDIR;
 
-$first_row = 1;
+# Connect to the database
+my $dbh = DBI->connect('DBI:mysql:btmux', 'btmux-read', 'abcd1234')
+    or die "Couldn't open database: $DBI::errstr; stopped";
 
-	$t = new Net::Telnet (Timeout  => 10,
-						  Port => $SERVERPORT,
-			              Prompt => "/'/",
-			              Telnetmode => 0
-#						  ErrMode => "return"
-		);
-	## Connect and login.
-	$t->open($SERVERHOST);
-	print "Server: $SERVERHOST\n";
-	print "Port: $SERVERPORT\n";
-	do {
-		$line = $t->getline();
-		print $line;
-	}until ($line =~ /.*\-+\'/);
-	$t->print(('WHO'));
-	@output = ();
-	$nrecord = 0;
-	while(1) {
-		$line = $t->getline();
-		if($line =~ /^Player Name\s+On For\s+Idle\s+.*/) {
-			next;
-		}
-		if ($line =~ /^\d+ Players logged in, (\d+) record, .*/) {
-			$nrecord = $1;
-			last;
-		}
-		if($line =~ /^(\S+(\s+\S+)?)\s+(\d{2,2}:\d{2,2})\s+(\d+[smhd]\S*)\s+(.*)/) {
-			my @row = ($1, $3, $4, $5);
-			push @output, \@row
-		}else {
-			print("Opps, not match ???????? $line\n");
-		}
-	};
-	print("record=$nrecord\n");
-	print("output = @output\n");
-	$t->close;
+# Prepare the SQL query for execution
+my $sth = $dbh->prepare(<<End_SQL) or die "Couldn't prepare statement: $DBI::errstr; stopped";
+SELECT player_name, player_alias, player_online, player_idle, player_last_logon FROM players
+End_SQL
+
+# Execute the query
+$sth->execute() or die "Couldn't execute statement: $DBI::errstr; stopped";
+
 ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 $year = substr($year, 1);
 #printf("Time Format - HH:MM:SS\n");
@@ -99,21 +74,21 @@ body {
 <img src="$WEBDIR$LOGO"><br>
 Last Scanned: $LAST_SEEN
 <table border=1>
-<tr><td colspan = 4><center><h1>$SERVER_NAME Server Stats</h1></center></td></tr>
-<tr><td><b>User Name</b></td><td><b>On For</b></td><td><b>Idle</b></td><td><b>Status</b></td></tr>
+<tr><td colspan = 5><center><h1>$SERVER_NAME Server Stats</h1></center></td></tr>
+<tr><td><b>User Name</b></td><td><b>User Alias</b></td><td><b>On For</b></td><td><b>Idle</b></td><td><b>Last Logon</b></td></tr>
 END_MESSAGE
 open(my $fh, '>', "index.html") or die "Could not open file 'index.html' $!";
 print $fh $message;
-print "Operation done successfully\n";
+#print "Operation done successfully\n";
 #$dbh->disconnect();
 
-for(my $i = 0; $i <@output; $i++)
-{
+# Fetch each row and print it
+while ( my ($player_name, $player_alias, $player_online, $player_idle, $player_last_logon) = $sth->fetchrow_array() ) {
+     print STDOUT "Field 1: $player_name  Field 2: $player_alias  Field 3: $player_online Field 4: $player_idle Field 5: $player_last_logon\n";
 	($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 	$year = substr($year, 1);
 	$LAST_SEEN = sprintf("%02d/%02d/20%02d %02d:%02d:%02d", $mon, $mday, $year, $hour, $min, $sec);
-#	print $fh "<tr><td width=250>$curline[0]</td><td>$ONFOR</td><td>$IDLE</td><td>$STATUS</td></tr>";
-	print $fh "<tr><td width=250>$output[$i][0]</td><td>$output[$i][1]</td><td>$output[$i][2]</td><td>$output[$i][3]</td></tr>";
+	print $fh "<tr><td width=250>$player_name</td><td>$player_alias</td><td>$player_online</td><td>$player_idle</td><td>$player_last_logon</td></tr>";
 }
 
 print $fh "</table>
@@ -124,6 +99,10 @@ Version $REVVER - <b>Get This Utility At <a href=\"https://MekCity.org\">Mek Cit
 </body>
 </html>";
 close $fh;
+
+# Disconnect from the database
+$dbh->disconnect();
+
 copy "index.html", $OUTDIR;
 exit(0);
 
