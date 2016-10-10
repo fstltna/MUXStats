@@ -3,7 +3,6 @@
 use strict;
 
 use DBI;
-my $DBFIELD = 16;
 my $DESIRED_NAME = "MarisaG";
 my $UserID;
 my $RealName;
