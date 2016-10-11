@@ -8,10 +8,7 @@ $WEBDIR="/muxstats/";
 $LOGO="logoSmall.png";
 $SERVER_NAME="MekCity";
 $REVVER="1.0";
-$SERVERHOST="mekcity.com";
-$SERVERPORT="3067";
 
-my $DESIRED_NAME = "MarisaG";
 my $UserID;
 my $RealName;
 my $convertedname;
@@ -104,6 +101,9 @@ while ( my ($player_name, $player_alias, $player_online, $player_idle, $player_l
 	($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 	$year = substr($year, 1);
 	$LAST_SEEN = sprintf("%02d/%02d/20%02d %02d:%02d:%02d", $mon, $mday, $year, $hour, $min, $sec);
+
+$UserId = "";
+$convertedname = "";
 
 # Connect to the database
 my $dbh2 = DBI->connect('DBI:mysql:joomla', 'btmux-read', 'abcd1234')
