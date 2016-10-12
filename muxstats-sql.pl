@@ -14,7 +14,7 @@ $SHOWHOST_FIELD=17;
 my $UserID;
 my $RealName;
 my $convertedname;
-my $Player_Name;
+my $PlayerName;
 
 sub ConvertName ()
 {
@@ -93,7 +93,6 @@ END_MESSAGE
 open(my $fh, '>', "index.html") or die "Could not open file 'index.html' $!";
 print $fh $message;
 #print "Operation done successfully\n";
-#$dbh->disconnect();
 
 # Fetch each row and print it
 while ( my ($player_name, $player_alias, $player_online, $player_idle, $player_last_logon) = $sth->fetchrow_array() ) {
@@ -109,23 +108,31 @@ $convertedname = "";
 # Connect to the database
 my $dbh2 = DBI->connect('DBI:mysql:joomla', 'btmux-read', 'abcd1234')
    or die "Couldn't open database: $DBI::errstr; stopped";
+    print("PlayerName1: $PlayerName\n");
 
 # ---
 # Prepare the SQL query for execution
 my $sth1 = $dbh2->prepare(<<End_SQL) or die "Couldn't prepare statement: $DBI::errstr; stopped";
 SELECT user_id, field_id, value FROM jml_community_fields_values WHERE value = "$PlayerName"
 End_SQL
+    print("PlayerName2: $PlayerName\n");
 
 # Execute the query
 $sth1->execute() or die "Couldn't execute statement: $DBI::errstr; stopped";
+    print("PlayerName3: $PlayerName\n");
+
+# Clear out entry ZZZ
+$UserID = "";
+$RealName = "";
 
 # Fetch each row and print it
 while ( my ($user_id) = $sth1->fetchrow_array() ) {
+    print("PlayerName4: $PlayerName\n");
     $UserID = $user_id;
     print STDOUT "User ID: $UserID\n";
 
 my $sth2 = $dbh2->prepare(<<End_SQL2) or die "Couldn't prepare statement: $DBI::errstr; stopped";
-SELECT id, name, username FROM jml_users WHERE id = "$user_id"
+SELECT id, name, username FROM jml_users WHERE id = "$UserID"
 End_SQL2
 
 # Execute the User query
@@ -162,9 +169,6 @@ $convertedname = ConvertName();
 my $URL_IS = "https://MekCity.com/index.php/community/$UserID-$convertedname/profile";
 print ("URL: '$URL_IS'\n");
 
-# Disconnect from the database
-$dbh2->disconnect();
-
 	if ($ShowHost eq "No")
 	{
 	    $player_host = "-SECRET-";
@@ -177,6 +181,9 @@ $dbh2->disconnect();
 	{
 		print $fh "<tr><td width=250>$PlayerName</td><td>$player_alias</td><td>$player_online</td><td>$player_idle</td><td>$player_host</td><td>$player_last_logon</td></tr>";
 	}
+# Disconnect from the database
+$dbh2->disconnect();
+
 }
 
 print $fh "</table>
