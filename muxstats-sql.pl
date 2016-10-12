@@ -7,7 +7,7 @@ $OUTDIR="/var/www/html/muxstats";
 $WEBDIR="/muxstats/";
 $LOGO="logoSmall.png";
 $SERVER_NAME="MekCity";
-$REVVER="1.0";
+$REVVER="1.1";
 $USERNAME_FIELD=16;
 $SHOWHOST_FIELD=17;
 
@@ -181,10 +181,7 @@ $dbh2->disconnect();
 
 print $fh "</table>
 <hr>
-Max Users: $nrecord
-<hr>
-Version $REVVER - <b>Get This Utility At <a href=\"https://MekCity.com\">Mek City</a></b><br>
-Want Your Profile Linked? Look at the instructions <a href=\"https://MekCity.com/profile_link.html\" target=_blank>here</a>
+Version $REVVER - Want Your Profile Linked? Look at the instructions <a href=\"https://MekCity.com/profile_link.html\" target=_blank>here</a>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
